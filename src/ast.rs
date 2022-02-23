@@ -6,8 +6,8 @@ use std::convert::TryInto;
 use std::iter::FromIterator;
 use std::u32;
 
-use injective::injective_from_pattern;
-use injective::ConversionError;
+use crate::injective_from_pattern;
+use crate::injective::ConversionError;
 
 #[derive(Parser)]
 #[grammar = "lisp.pest"]

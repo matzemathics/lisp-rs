@@ -1,13 +1,6 @@
 use std::convert::From;
-use std::convert::TryFrom;
 
 use std::fmt;
-
-#[derive(Debug, PartialEq)]
-enum MyType {
-    Number(f64),
-    NoNumber,
-}
 
 #[derive(Debug, PartialEq)]
 pub struct ConversionError<S, T> {
@@ -38,12 +31,12 @@ impl<S: fmt::Debug, T> fmt::Display for ConversionError<S, T> {
 #[macro_export]
 macro_rules! injective_from_pattern {
     ($T:ty => $V:ty, $p:path) => {
-        impl From<$T> for $V {
+        impl std::convert::From<$T> for $V {
             fn from(x: $T) -> $V {
                 $p(x)
             }
         }
-        impl TryFrom<$V> for $T {
+        impl std::convert::TryFrom<$V> for $T {
             type Error = ConversionError<$V, $T>;
             fn try_from(x: $V) -> Result<$T, ConversionError<$V, $T>> {
                 match x {
@@ -58,15 +51,15 @@ macro_rules! injective_from_pattern {
 #[macro_export]
 macro_rules! injective_from_property {
     ($T:ty => $V:ty, $p:ident, $C:ty) => {
-        impl From<$T> for $V {
+        impl std::convert::From<$T> for $V {
             fn from(x: $T) -> $V {
                 let mut res = <$V>::default();
                 res.$p = x.into();
                 res
             }
         }
-        impl TryFrom<$V> for $T {
-            type Error = <$T as TryFrom<$C>>::Error;
+        impl std::convert::TryFrom<$V> for $T {
+            type Error = <$T as std::convert::TryFrom<$C>>::Error;
             fn try_from(x: $V) -> Result<$T, Self::Error> {
                 x.$p.try_into()
             }
@@ -74,15 +67,30 @@ macro_rules! injective_from_property {
     };
 }
 
+#[cfg(test)]
+mod tests {
+    use crate::*;
 
-injective_from_pattern!(f64 => MyType, MyType::Number);
+    #[derive(Debug, PartialEq)]
+    enum MyType {
+        Number(f64),
+        NoNumber,
+    }
 
-#[test]
-fn injective_from_orig_is_sane() {
-    assert_eq!(MyType::Number(2.), MyType::from(2.));
-}
+    injective_from_pattern!(f64 => MyType, MyType::Number);
 
-#[test]
-fn injective_try_from_other_is_sane() {
-    assert_eq!(f64::try_from(MyType::Number(2.)), Ok(2.));
+    #[test]
+    fn injective_from_orig_is_sane() {
+        assert_eq!(MyType::Number(2.), MyType::from(2.));
+    }
+
+    #[test]
+    fn injective_wrong_pattern_conversion_error() {
+        assert_eq!(f64::try_from(MyType::NoNumber), Err(ConversionError::from(MyType::NoNumber)));
+    }
+
+    #[test]
+    fn injective_try_from_other_is_sane() {
+        assert_eq!(f64::try_from(MyType::Number(2.)), Ok(2.));
+    }
 }

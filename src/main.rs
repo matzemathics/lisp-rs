@@ -4,15 +4,12 @@ extern crate pest_derive;
 
 mod ast;
 mod bytecode;
-
+mod injective;
 use crate::ast::LispValue;
 use crate::bytecode::{AstValue, Bytecode, Compiled, Entry, Heap};
 
-use injective::injective_from_property;
-use injective::ConversionError;
-
 use std::collections::HashMap;
-use std::convert::{TryFrom, TryInto};
+use std::convert::{TryInto, From};
 use std::ops::Deref;
 
 #[derive(Debug, Clone, Default)]
