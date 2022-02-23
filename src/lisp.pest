@@ -1,0 +1,62 @@
+
+expr = _{ 
+    list
+    | number
+    | symbol
+    | string
+    | char
+    | value_expr
+}
+
+symbol = { 
+    (ASCII_ALPHANUMERIC 
+    | "+" | "-" | "*" 
+    | "_" | "?" | "!" 
+    | "<" | ">" | "=" 
+    | "|" | "&" | "~" 
+    | "#" | ":" | ";" 
+    )+ 
+}
+
+integer = { ("+" | "-")? ~ ASCII_DIGIT+ }
+
+number = @{ integer ~ ("." ~ ASCII_DIGIT*)? ~ (^"e" ~ integer)? }
+
+list = { "(" ~ (expr ~ SEPARATOR*)* ~ ")" }
+
+string = @{ "\"" ~ (string_character | escape_sequence)* ~ "\"" }
+
+string_character = @{ !("\"" | "\\") ~ ANY }
+
+ascii_escape_sequence = @{
+    "\\" ~ (
+        "x" ~ ('0' .. '7') ~ ASCII_HEX_DIGIT
+        | "n" | "r" | "t" | "\\" | "0"
+    )
+}
+
+unicode_escape_sequence = @{ 
+    "\\u{" ~ (
+        "0"? ~ ASCII_HEX_DIGIT{1,5}
+        | "10" ~ ASCII_HEX_DIGIT{4}
+    ) ~ "}"
+}
+
+quote_escape_sequence = @{
+    "\\" ~ ("'" | "\"")
+}
+
+escape_sequence = _{
+    ascii_escape_sequence
+    | unicode_escape_sequence
+    | quote_escape_sequence
+}
+
+char = @{
+    "'" ~ (
+        !("\\") ~ ANY
+        | escape_sequence
+    ) ~ "'"
+}
+
+value_expr = { "$" ~ expr }

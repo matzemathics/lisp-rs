@@ -1,0 +1,80 @@
+
+impl From<f64> for LispValue {
+    fn from(num: f64) -> LispValue { LispValue::Number(num) }
+}
+
+impl TryFrom<LispValue> for f64 {
+    type Error = LispConversionError;
+    fn try_from(value: LispValue) -> Result<Self, Self::Error> {
+        match value {
+            LispValue::Number(n) => Ok(n),
+            v => Err(LispConversionError { 
+                target: LispType::Number, 
+                source: v.get_type()
+            }),
+        }
+    }
+}
+
+impl From<bool> for LispValue {
+    fn from(b: bool) -> LispValue { 
+        LispValue::Symbol(
+            if b {String::from("true")}
+            else {String::from("false")}) 
+    }
+}
+
+
+impl TryFrom<LispValue> for bool {
+    type Error = LispConversionError;
+    fn try_from(value: LispValue) -> Result<Self, Self::Error> {
+        match value {
+            LispValue::Symbol(s) => match s.as_str() {
+                "true" => Ok(true),
+                "false" => Ok(false),
+                _ => Err(LispConversionError{
+                    target: LispType::Symbol,
+                    source: LispType::Symbol,
+                })
+            }
+            v => Err(LispConversionError { 
+                target: LispType::Symbol, 
+                source: v.get_type()
+            }),
+        }
+    }
+}
+
+impl From<char> for LispValue {
+    fn from(c: char) -> LispValue { LispValue::Char(c) }
+}
+
+impl TryFrom<LispValue> for char {
+    type Error = LispConversionError;
+    fn try_from(value: LispValue) -> Result<Self, Self::Error> {
+        match value {
+            LispValue::Char(c) => Ok(c),
+            v => Err(LispConversionError { 
+                target: LispType::Char, 
+                source: v.get_type()
+            }),
+        }
+    }
+}
+
+impl From<String> for LispValue {
+    fn from(s: String) -> LispValue { LispValue::String(s) }
+}
+
+impl TryFrom<LispValue> for String {
+    type Error = LispConversionError;
+    fn try_from(value: LispValue) -> Result<Self, Self::Error> {
+        match value {
+            LispValue::String(s) => Ok(s),
+            v => Err(LispConversionError { 
+                target: LispType::String, 
+                source: v.get_type()
+            }),
+        }
+    }
+}
